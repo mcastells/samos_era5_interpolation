@@ -69,6 +69,7 @@ class Era5:
         self.v_wind_10m = add_units(self.v_wind_10m, 'm/s')
         self.mslp = add_units(self.mslp, 'Pa')
         self.temp_2m = add_units(self.temp_2m, 'K')
+        self.dewpoint_2m = add_units(self.dewpoint_2m, 'K')
         self.sst = add_units(self.sst, 'K')
 
         #self.wind_10m = (self.u_wind_10m**2 + self.v_wind_10m**2)**0.5
