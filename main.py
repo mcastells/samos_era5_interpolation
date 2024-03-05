@@ -23,17 +23,13 @@ if __name__ == '__main__':
     ncpaths = sorted(list(samos_input_dir.rglob('*.nc')))
 
     for path in tqdm(ncpaths, desc=f'Processing {samos_input_dir.name} files', leave=False):
-        d = path.parent
-        versions = sorted(d.glob(path.stem[0:-4]+'*.nc'))
         
-        # path == versions[-1] means that this file is the latest version
-        if path.is_file() and path.suffix == '.nc' and path == versions[-1]:
+        if path.is_file() and path.suffix == '.nc':
 
             tqdm.write(f'Opening {colored(path, "blue")}')
             samos_ds = xr.open_dataset(path)
 
             timepadding = 1
-            # Remove minutes from datetime for synoptic plot
             synoptic_dt_start = pandas.to_datetime(samos_ds.time.data[0]) - datetime.timedelta(hours=timepadding)
             synoptic_dt_end = pandas.to_datetime(samos_ds.time.data[-1]) + datetime.timedelta(hours=timepadding)
 
@@ -93,7 +89,7 @@ if __name__ == '__main__':
                         previoushour = np.where(syn_timesteps < dt)[0][-1]
                         era5var_attime = interpolate_timestep(era5_var[previoushour].m,era5_var[previoushour+1].m,dt.minute)
                         era5var_atship = interpolate_to_points(points=points,values=era5var_attime.flatten(),xi=(samos_ds.lon[i],samos_ds.lat[i]))
-                    era5_interpolated_to_ship[i] = float(era5var_atship)
+                    era5_interpolated_to_ship[era5_var_name][i] = float(era5var_atship)
 
             print(era5_interpolated_to_ship)
 
