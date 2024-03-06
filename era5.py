@@ -48,6 +48,10 @@ class Era5:
                     self.shf.append(grb.values)
                 elif 'Surface latent heat flux' in grb.parameterName: 
                     self.lhf.append(grb.values)
+                elif 'Eastward turbulent surface stress' in grb.parameterName: 
+                    self.u_stress.append(grb.values)
+                elif 'Northward turbulent surface stress' in grb.parameterName: 
+                    self.v_stress.append(grb.values)
                 elif grb.parameterName == 'Sea surface temperature': 
                     self.sst.append(grb.values)
                     if self.lats_ocean is None and self.lons_ocean is None:
