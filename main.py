@@ -12,8 +12,8 @@ from tqdm import tqdm, trange
 
 import era5
 
-samos_input_dir = Path('/Net/mdc/marineflux/data/SAMOS_Fluxes_2024-02-13/B23')
-era5_dir = Path('~/era5_data/')
+samos_input_dir = Path('/Net/mdc/marineflux/data/SAMOS_Fluxes_2024-02-14/')
+era5_dir = Path('/home/marc/code/era5_data/')
 
 def interpolate_timestep(previoushour, nexthour, minute):
     weight = minute/60.
@@ -56,17 +56,21 @@ if __name__ == '__main__':
             era5_ds = era5.Era5(grbs,synoptic_dt_start,synoptic_dt_end)
 
             era5_interpolated_to_ship = {
-                'uwind_10m': np.empty(shape=len(samos_ds.time)),
-                'vwind_10m': np.empty(shape=len(samos_ds.time)),
+                'sst': np.empty(shape=len(samos_ds.time)),
+                'u_wind_10m': np.empty(shape=len(samos_ds.time)),
+                'v_wind_10m': np.empty(shape=len(samos_ds.time)),
                 'mslp': np.empty(shape=len(samos_ds.time)),
                 'temp_2m': np.empty(shape=len(samos_ds.time)),
                 'dewpoint_2m': np.empty(shape=len(samos_ds.time)),
-                'sst': np.empty(shape=len(samos_ds.time))
+                'shf': np.empty(shape=len(samos_ds.time)),
+                'lhf': np.empty(shape=len(samos_ds.time)),
+                'u_stress': np.empty(shape=len(samos_ds.time)),
+                'v_stress': np.empty(shape=len(samos_ds.time))
             }
 
             syn_timesteps = era5_ds.timesteps
 
-            for era5_var_name in era5_interpolated_to_ship.keys():
+            for era5_var_name in tqdm(era5_interpolated_to_ship.keys(), desc='Interpolating ERA5 variables'):
                 if era5_var_name == 'sst':
                     syn_lons = era5_ds.lons_ocean
                     syn_lats = era5_ds.lats_ocean
@@ -80,8 +84,8 @@ if __name__ == '__main__':
 
                 points = np.array((syn_lons.flatten(),syn_lats.flatten())).T
 
-                for i in trange(len(samos_ds.time), desc='Interpolating minute ERA5 variables', leave=False):
-                    dt = samos_ds.time[i]
+                for i in trange(len(samos_ds.time), desc=f'Interpolating {era5_var_name}', leave=False):
+                    dt = pandas.to_datetime(samos_ds.time.data[i])
                     if dt.minute == 0:
                         timestep = np.where(syn_timesteps == dt)[0][0]
                         era5var_atship = interpolate_to_points(points=points,values=era5_var[timestep].m.flatten(),xi=(samos_ds.lon[i],samos_ds.lat[i]))

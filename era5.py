@@ -25,6 +25,10 @@ class Era5:
         self.temp_2m = []
         self.dewpoint_2m = []
         self.sst = []
+        self.shf = []
+        self.lhf = []
+        self.u_stress = []
+        self.v_stress = []
 
         for grb in gribs:
             if grb.validDate >= dt_start and grb.validDate <= dt_end:
@@ -38,14 +42,19 @@ class Era5:
                     self.mslp.append(grb.values)
                 elif '2 metre temperature' in grb.parameterName: 
                     self.temp_2m.append(grb.values)
-                elif '2 metre dewpoint' in grb.parameterName: 
+                elif '2 metre dewpoint temperature' in grb.parameterName: 
                     self.dewpoint_2m.append(grb.values)
+                elif 'Surface sensible heat flux' in grb.parameterName: 
+                    self.shf.append(grb.values)
+                elif 'Surface latent heat flux' in grb.parameterName: 
+                    self.lhf.append(grb.values)
                 elif grb.parameterName == 'Sea surface temperature': 
                     self.sst.append(grb.values)
                     if self.lats_ocean is None and self.lons_ocean is None:
                         self.lats_ocean, self.lons_ocean = grb.latlons()
                 else:
-                    raise(Exception(f'Match not found for parameter name: {grb.parameterName}'))
+                    #raise(Exception(f'Match not found for parameter name: {grb.parameterName}'))
+                    pass
         self.timesteps = np.array(self.timesteps)
         ntimesteps = len(self.timesteps)
         
@@ -65,12 +74,16 @@ class Era5:
         def add_units(data, unit_name, grid='atmos'):
             return masked_array(invalidate_data_missing_timesteps(data,grid),units(unit_name))
         
-        self.u_wind_10m = add_units(self.u_wind_10m, 'm/s')
-        self.v_wind_10m = add_units(self.v_wind_10m, 'm/s')
+        self.u_wind_10m = add_units(self.u_wind_10m, 'm s**-1')
+        self.v_wind_10m = add_units(self.v_wind_10m, 'm s**-1')
         self.mslp = add_units(self.mslp, 'Pa')
         self.temp_2m = add_units(self.temp_2m, 'K')
         self.dewpoint_2m = add_units(self.dewpoint_2m, 'K')
         self.sst = add_units(self.sst, 'K')
+        self.shf = add_units(self.shf, 'J m**-2')
+        self.lhf = add_units(self.lhf, 'J m**-2')
+        self.u_stress = add_units(self.u_stress, 'N m**-2 s')
+        self.v_stress = add_units(self.v_stress, 'N m**-2 s')
 
         #self.wind_10m = (self.u_wind_10m**2 + self.v_wind_10m**2)**0.5
 
@@ -89,7 +102,7 @@ def download(dt_start, dt_end, data_extent, filename):
             days.append(str(date_iter.day))
         date_iter += timedelta(days=1)
 
-    era5_variables = ['10m_u_component_of_wind', '10m_v_component_of_wind', '2m_temperature', '2m_dewpoint', 'mean_sea_level_pressure', 'sea_surface_temperature']
+    era5_variables = ['10m_u_component_of_wind', '10m_v_component_of_wind', '2m_temperature', '2m_dewpoint_temperature', 'mean_sea_level_pressure', 'sea_surface_temperature', 'eastward_turbulent_surface_stress', 'northward_turbulent_surface_stress', 'surface_latent_heat_flux', 'surface_sensible_heat_flux']
 
     c.retrieve(
         'reanalysis-era5-single-levels',
